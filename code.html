@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Archery Love Game - Aarav Special</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+
+  /* Reset and basic */
+  * {
+    box-sizing: border-box;
+  }
+
+  body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #ff758c, #ff7eb3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #fff;
+    user-select: none;
+  }
+
+  header {
+    margin-top: 24px;
+    font-weight: 700;
+    font-size: 2rem;
+    text-align: center;
+    text-shadow: 0 3px 10px rgba(255, 105, 135, 0.7);
+  }
+
+  #gameArea {
+    position: relative;
+    width: 90vw;
+    max-width: 500px;
+    height: 500px;
+    background: radial-gradient(circle at center, #fff6f9 0%, #ff5470 80%);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(255, 80, 110, 0.8);
+    margin: 40px 0;
+    overflow: hidden;
+  }
+
+  /* Target */
+  #target {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 200px;
+    height: 200px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, #ff2b6e 30%, transparent 31%),
+      radial-gradient(circle, #fff 60%, transparent 61%),
+      radial-gradient(circle, #ff2b6e 100%);
+    box-shadow: 0 0 15px 5px #ff537c inset;
+    z-index: 1;
+  }
+
+  /* Center bullseye */
+  #bullseye {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 48px;
+    height: 48px;
+    background: #ff0857;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 12px 6px #ff0857;
+    z-index: 2;
+  }
+
+  /* Bow / Aiming line container for bigger click area */
+  #aimContainer {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    width: 120px;
+    height: 140px;
+    transform: translateX(-50%);
+    cursor: pointer;
+    z-index: 3;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+  }
+
+  /* Aiming line */
+  #aimLine {
+    width: 6px;
+    height: 100px;
+    background: linear-gradient(to top, #ff0069 0%, #ff76b8 100%);
+    border-radius: 3px;
+    box-shadow: 0 0 8px #ff64a7;
+    transform-origin: bottom center;
+    transition: box-shadow 0.3s ease;
+  }
+  #aimContainer:hover #aimLine {
+    box-shadow: 0 0 14px 4px #ff1e84;
+  }
+
+  /* Arrow */
+  #arrow {
+    position: absolute;
+    width: 6px;
+    height: 20px;
+    background: #ff99bd;
+    border-radius: 3px;
+    left: 50%;
+    bottom: 145px;
+    transform-origin: center bottom;
+    pointer-events: none;
+    box-shadow: 0 0 10px 2px #ff7ca9;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 4;
+  }
+  #arrow.fly {
+    opacity: 1;
+  }
+
+  /* Modal for "I Love You" */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(40, 12, 40, 0.85);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    z-index: 9999;
+  }
+  .modal-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .modal {
+    background: #ff628c;
+    padding: 40px 56px;
+    border-radius: 32px;
+    color: #fff;
+    font-weight: 800;
+    font-size: 2.8rem;
+    text-align: center;
+    box-shadow: 0 0 40px 10px #ff3385;
+    user-select: none;
+    max-width: 90vw;
+    animation: popupGlow 1.8s ease-in-out infinite alternate;
+  }
+  @keyframes popupGlow {
+    0% {
+      text-shadow:
+        0 0 8px #ff6397,
+        0 0 18px #ff1a63,
+        0 0 28px #ff0055,
+        0 0 38px #ff006e;
+    }
+    100% {
+      text-shadow:
+        0 0 12px #ff81ac,
+        0 0 26px #ff336f,
+        0 0 36px #ff0077,
+        0 0 48px #ff3399;
+    }
+  }
+
+  /* Button inside modal */
+  #closePopupBtn {
+    margin-top: 28px;
+    background: #fff0f6;
+    color: #ff1a63;
+    border: none;
+    padding: 12px 36px;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 0 10px #ff3366;
+    transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+  }
+  #closePopupBtn:hover,
+  #closePopupBtn:focus {
+    background: #ff207e;
+    color: #fff;
+    outline: none;
+    transform: scale(1.05);
+  }
+
+  /* Instruction text */
+  #instructions {
+    margin-top: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffd1dc;
+    text-shadow: 0 0 8px #ffb3c6;
+    user-select: none;
+  }
+
+  /* Responsive */
+  @media(max-width: 480px) {
+    #gameArea {
+      width: 95vw;
+      height: 95vw;
+      max-width: none;
+    }
+    header {
+      font-size: 1.8rem;
+    }
+    .modal {
+      font-size: 2rem;
+      padding: 32px 40px;
+    }
+    #closePopupBtn {
+      font-size: 1rem;
+      padding: 10px 28px;
+    }
+  }
+
+</style>
+</head>
+<body>
+  <header>Archery Love Game - Aarav Special</header>
+  <div id="gameArea" aria-label="Archery Game: Shoot arrow to hit target">
+    <div id="target" aria-hidden="true">
+      <div id="bullseye"></div>
+    </div>
+    <div id="aimContainer" tabindex="0" role="button" aria-label="Aim and shoot arrow" title="Use mouse or keyboard space to shoot">
+      <div id="aimLine"></div>
+    </div>
+    <div id="arrow" aria-hidden="true"></div>
+  </div>
+  <div id="instructions">Move mouse or finger left and right to aim, then click or press Space to shoot.</div>
+
+  <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="popupMessage" tabindex="-1" id="popupModal" aria-hidden="true">
+    <div class="modal">
+      <div id="popupMessage" aria-live="assertive" aria-atomic="true"></div>
+      <button id="closePopupBtn">Close</button>
+    </div>
+  </div>
+
+<script>
+  (function(){
+    const aimContainer = document.getElementById('aimContainer');
+    const gameArea = document.getElementById('gameArea');
+    const arrow = document.getElementById('arrow');
+    const popupModal = document.getElementById('popupModal');
+    const popupMessage = document.getElementById('popupMessage');
+    const closePopupBtn = document.getElementById('closePopupBtn');
+
+    // Game state
+    let aimAngle = 0; // from -60 to +60 degrees max aiming left/right
+    const maxAimAngle = 60; 
+    let shooting = false;
+
+    function getGameAreaRect() {
+      return gameArea.getBoundingClientRect();
+    }
+
+    // Position aiming line center bottom and rotate
+    function updateAimPosition(angle) {
+      const aimLine = document.getElementById('aimLine');
+      aimLine.style.transform = `rotate(${angle}deg)`;
+    }
+
+    updateAimPosition(0);
+
+    // Handle mouse/touch aiming
+    function onAimMove(clientX) {
+      const rect = getGameAreaRect();
+      const areaCenterX = rect.left + rect.width/2;
+      let deltaX = clientX - areaCenterX;
+      const sensitivity = 1.1; // tuning parameter
+
+      let angle = deltaX / (rect.width/2) * maxAimAngle * sensitivity;
+      angle = Math.max(-maxAimAngle, Math.min(maxAimAngle, angle));
+      aimAngle = angle;
+      updateAimPosition(aimAngle);
+    }
+
+    // Attach mouse and touch listeners globally for aiming
+    window.addEventListener('mousemove', (e)=>{
+      onAimMove(e.clientX);
+    });
+    window.addEventListener('touchmove', (e)=>{
+      if(e.touches.length > 0){
+        onAimMove(e.touches[0].clientX);
+      }
+    }, {passive:true});
+
+    // Shoot arrow animation variables
+    function shootArrow() {
+      if (shooting) return;
+      shooting = true;
+
+      const rect = getGameAreaRect();
+
+      // Reset arrow position & visible
+      arrow.style.transition = 'none';
+      arrow.style.bottom = '145px';
+      arrow.style.left = '50%';
+      arrow.style.opacity = '1';
+      arrow.style.transform = 'translateX(0) translateY(0)';
+
+      // Calculate hit position on target according to aim angle
+      // Target center is (50%, 50%), bullseye radius ~24px
+      // travel vertical fixed, horizontal offset depends on aimAngle
+
+      const travelDistance = rect.height * 0.5; // vertical travel in px
+      const maxHorizontalOffset = rect.width * 0.2;
+      const horizontalOffsetPx = (aimAngle / maxAimAngle) * maxHorizontalOffset;
+
+      // Animate arrow flight with transform
+      // Use translateX and translateY for smooth animation
+      setTimeout(() => {
+        arrow.style.transition = 'transform 0.7s ease-in, bottom 0.7s ease-in, left 0.7s ease-in';
+        arrow.style.transform = `translateX(${horizontalOffsetPx}px) translateY(-${travelDistance}px)`;
+      }, 20); // slight delay to apply transition after reset
+
+      // After flight complete, check hit
+      setTimeout(() => {
+        const hitTolerancePx = 20; // bullseye radius tolerance
+        const hitDistance = Math.abs(horizontalOffsetPx);
+
+        if (hitDistance <= hitTolerancePx) {
+          // Perfect hit!
+          showPopup('I Love You');
+        } else {
+          // Miss or near miss
+          setTimeout(() => {
+            arrow.style.opacity = '0';
+            shooting = false;
+          }, 800);
+        }
+      }, 720);
+    }
+
+    // Event listeners for shooting 
+    aimContainer.addEventListener('click', shootArrow);
+    aimContainer.addEventListener('keydown', e => {
+      if(e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        shootArrow();
+      }
+    });
+
+    // Popup modal
+    function showPopup(message) {
+      popupMessage.textContent = message;
+      popupModal.classList.add('show');
+      popupModal.setAttribute('aria-hidden', 'false');
+      popupModal.focus();
+
+      // Fade out arrow for clarity
+      arrow.style.opacity = '0';
+    }
+    function hidePopup() {
+      popupModal.classList.remove('show');
+      popupModal.setAttribute('aria-hidden', 'true');
+      shooting = false;
+      aimContainer.focus();
+    }
+    closePopupBtn.addEventListener('click', hidePopup);
+
+    // Accessibility keyboard handling for popup
+    popupModal.addEventListener('keydown', e => {
+      if(e.key === 'Escape') {
+        hidePopup();
+      }
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        closePopupBtn.focus();
+      }
+    });
+
+  })();
+</script>
+</body>
+</html>
+
